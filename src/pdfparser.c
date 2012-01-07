@@ -492,10 +492,13 @@ parseEncrypObject(FILE *file, EncData *e) {
 	  if(!fl) {
 	    /* BZZZT!!  This is sooo wrong but will work for most cases.
 	       only use the first length we stumble upon */
-	    e->length = tmp_l;
-	    printf("Length: %d\n", e->length);
+	    /* Except if it's too short to be a key, duh. Janky code, janky hack */
+	    if (tmp_l >= 40) {
+	      e->length = tmp_l;
+	      printf("Length: %d\n", e->length);
+	      fl = true;
+	    }
 	  }
-	  fl = true;
 	}
 	break;
       case 'O':
