@@ -353,14 +353,15 @@ findTrailer(FILE *file, EncData *e) {
   while(ch != EOF) {
     if(isEndOfLine(ch)) {
       if(isWord(file, "trailer")) {
-	printf("found trailer\n");
 	ch = parseWhiteSpace(file);
 	if(ch == '<' && getc(file) == '<') {
 	  /** we can be pretty sure to have found the trailer.
 	      start looking for the Encrypt-entry */
 
+	  /*
 	  pos_i = ftell(file);
 	  printf("found Trailer at pos %x\n", pos_i);
+	  */
 	  ch = getc(file);
 	  while(ch != EOF) {
 	    if(ch == '>') {
@@ -372,12 +373,14 @@ findTrailer(FILE *file, EncData *e) {
 	      ch = getc(file);
 	    }
 	    ch = getc(file);
-	    printf("found a name: %c\n", ch);
+	    /** printf("found a name: %c\n", ch); */
 	    if(e_pos < 0 && ch == 'E' && isWord(file, "ncrypt")) {
 	      e_pos = parseIntWithC(file,parseWhiteSpace(file));
 	      if(e_pos >= 0) {
+		/*
 		pos_i = ftell(file);
 		printf("found Encrypt at pos %x, ", pos_i);
+		*/
 		printf("%d\n", e_pos);
 		encrypt = true;
 	      }
@@ -395,8 +398,10 @@ findTrailer(FILE *file, EncData *e) {
 	      }
 
 	      str = parseRegularString(file);
+	      /*
 	      pos_i = ftell(file);
 	      printf("found ID at pos %x\n", pos_i);
+	      */
 	      if(str)
 		id = true;
 	      ch = getc(file);
@@ -420,7 +425,7 @@ findTrailer(FILE *file, EncData *e) {
     else
       ch = getc(file);
   }
-  printf("finished searching\n");
+  /** printf("finished searching\n"); */
 
   if(str) {
     if(str->content)
@@ -455,7 +460,6 @@ parseEncrypObject(FILE *file, EncData *e) {
       ch = getc(file);
       if(ch == '>') {
 	dict--;
-	printf("Currently at dict level %d\n", dict);
 	if(dict <= 0)
 	   break;
       }
@@ -464,7 +468,6 @@ parseEncrypObject(FILE *file, EncData *e) {
       ch = getc(file);
       if(ch == '<') {
 	dict++;
-	printf("Currently at dict level %d\n", dict);
       }
     }
     if(ch == '/') {
@@ -495,7 +498,6 @@ parseEncrypObject(FILE *file, EncData *e) {
 	    /* Except if it's too short to be a key, duh. Janky code, janky hack */
 	    if (tmp_l >= 40) {
 	      e->length = tmp_l;
-	      printf("Length: %d\n", e->length);
 	      fl = true;
 	    }
 	  }
@@ -517,7 +519,6 @@ parseEncrypObject(FILE *file, EncData *e) {
 	free(str);
 	str = NULL;
 	fo = true;
-	printf("Got o_string\n");
 	break;
       case 'P':
 	ch = getc(file);
@@ -525,7 +526,6 @@ parseEncrypObject(FILE *file, EncData *e) {
 	  ch = parseWhiteSpace(file);
 	  e->permissions = parseIntWithC(file,ch);
 	  fp = true;
-	  printf("Got permissions, they are %d\n", e->permissions);
 	}
 	break;
       case 'R':
@@ -534,7 +534,6 @@ parseEncrypObject(FILE *file, EncData *e) {
 	  ch = parseWhiteSpace(file);
 	  e->revision = parseIntWithC(file,ch);
 	  fr = true;
-	  printf("Got revision, it is %d\n", e->revision);
 	}
 	break;
       case 'U':
@@ -553,14 +552,12 @@ parseEncrypObject(FILE *file, EncData *e) {
 	free(str);
 	str = NULL;
 	fu = true;
-        printf("Got u_string\n");
 	break;
       case 'V':
 	ch = getc(file);
 	if(isWhiteSpace(ch)) {
 	  e->version = parseIntWithC(file, parseWhiteSpace(file));
 	  fv = true;
-	  printf("Got version, it is %d\n", e->version);
 	}
 	break;
       default:
@@ -580,7 +577,6 @@ parseEncrypObject(FILE *file, EncData *e) {
   if(strcmp(e->s_handler,"Standard") != 0)
     return true;
 
-  printf("shall we return from this strangely spelled function?\n");
   return ff & fo && fp && fr && fu;
 }
 
@@ -605,7 +601,6 @@ findEncryptObject(FILE *file, const int e_pos, EncData *e) {
 	  ch = parseWhiteSpace(file);
 	  if(ch == 'o' && getc(file) == 'b' && getc(file) == 'j' &&
 	     parseWhiteSpace(file) == '<' && getc(file) == '<') {
-	    printf("heading into parseEncrypObject\n");
 	    return parseEncrypObject(file, e);
 	  }
 	}
@@ -632,7 +627,6 @@ findEncryptObjectFromBeginning(FILE *file, EncData *e) {
     if('/' == ch) {
       if(isWord(file, "Encrypt")) {
 	e_pos = parseIntWithC(file,parseWhiteSpace(file));
-	printf("Found encrypt, its value is %d\n", e_pos);
 	encrypt = true;
       }
       if(isWord(file, "ID")) {
@@ -648,10 +642,11 @@ findEncryptObjectFromBeginning(FILE *file, EncData *e) {
 	}
 	
 	str = parseRegularString(file);
+	/*
 	pos_i = ftell(file);
 	printf("found ID at pos %x\n", pos_i);
+	*/
 	if(str) {
-	  printf("string is %s\n", str->content);
 	  id = true;
 	}
       }
@@ -661,7 +656,6 @@ findEncryptObjectFromBeginning(FILE *file, EncData *e) {
       e->fileIDLen = str->len;
       free(str);
       rewind(file);
-      printf("heading into findEncryptObject\n");
       return findEncryptObject(file, e_pos, e);
     }
     ch = getc(file);
@@ -675,18 +669,14 @@ getEncryptedInfo(FILE *file, EncData *e) {
   bool ret;
 
   if(fseek(file, 0L, SEEK_END-1024)) {
-    printf("first pass on findTrailer\n");
     e_pos = findTrailer(file, e);
   }
   if(e_pos < 0) {
     rewind(file);
-    printf("second pass on findTrailer\n");
     e_pos = findTrailer(file, e);
   }
   if(e_pos == ETRANF) {
-    printf("no trailer found, searching elsewhere for Encrypt object\n");
     ret = findEncryptObjectFromBeginning(file, e); 
-    printf("We're back from this spaghetti of code we added\n");
     if(!ret)
       return EENCNF;
     return 0;

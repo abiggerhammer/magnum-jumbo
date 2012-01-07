@@ -107,7 +107,6 @@ int pdf2john(int argc, char **argv)
 	}
 
 	ret = getEncryptedInfo(file, e);
-	fprintf(stderr, "got return value of %d\n", ret);
 	if (ret) {
 		if (ret == EENCNF)
 			fprintf(stderr,
@@ -137,7 +136,6 @@ int pdf2john(int argc, char **argv)
         fprintf(stderr, "Wrong userpassword given, '%s'\n", userpassword);
         exit(-1);
     }
-    fprintf(stderr, "initPDFCrack succeeded\n");
 
 	/* deep serialize "e" structure */
 	printf("%s:$pdf$%s*", inputfile, e->s_handler);

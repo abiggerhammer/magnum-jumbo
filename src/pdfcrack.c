@@ -172,27 +172,18 @@ static bool isUserPasswordRev3(void)
 	int i;
 	unsigned int length, j;
 
-	printf("is user password rev 3? let's find out!\n");
 	length = encdata->length / 8;
-	printf("md5-ing\n");
 	md5(encKeyWorkSpace, ekwlen, enckey);
-	printf("md5_50'ing\n");
 	md5_50(enckey);
-	printf("memcpy!\n");
 	memcpy(test, encdata->u_string, 16);
-	printf("starting rc4 partial test with size %d\n", PARTIAL_TEST_SIZE);
 
 	RC4_DECRYPT_REV3(PARTIAL_TEST_SIZE);
-
-	printf("rc4 partial test done\n");
 
   /** if partial test succeeds we make a full check to be sure */
 	if (unlikely(memcmp(test, rev3TestKey, PARTIAL_TEST_SIZE) == 0)) {
 		memcpy(test, encdata->u_string, 16);
 		RC4_DECRYPT_REV3(16);
-		printf("rc4 full check done\n");
 		if (memcmp(test, rev3TestKey, 16) == 0) {
-			printf("comparison succeeded\n");
 			return true;
 		}
 	}
@@ -411,11 +402,9 @@ bool initPDFCrack(const EncData * e, const uint8_t * upw, const bool user)
 	/* set that we 'have' called init, and to allow cleanup to work next time */
 	binitPDFCrack_called = 1;
 
-	printf("initialize all the things!\n");
 	ekwlen =
 	    initEncKeyWorkSpace(e->revision, e->encryptMetaData,
 	    e->permissions, e->o_string, e->fileID, e->fileIDLen);
-	printf("all the things initialized\n");
 
 	encdata = e;
 	currPW = encKeyWorkSpace;
@@ -442,26 +431,19 @@ bool initPDFCrack(const EncData * e, const uint8_t * upw, const bool user)
 			knownPassword = isUserPasswordRev2();
 		}
 	} else if (e->revision >= 3) {
-		printf("revision is greater than or equal to 3\n");
 		memcpy(buf, pad, 32);
 		memcpy(buf + 32, e->fileID, e->fileIDLen);
 		tmp = malloc(sizeof(uint8_t) * 16);
 		md5(buf, 32 + e->fileIDLen, tmp);
 		rev3TestKey = tmp;
 		if (knownPassword) {
-			printf("if knownPassword\n");
 			if (!isUserPasswordRev3())
 				return false;
 			memcpy(encKeyWorkSpace, pad, 32);
-			printf("copied to workspace\n");
 		} else {
-			printf("!if knownPassword\n");
 			memcpy(password_user, pad, 32);
-			printf("copied\n");
 			knownPassword = isUserPasswordRev3();
-			printf("knownPassword set\n");
 		}
 	}
-	printf("returning true from initPDFCrack\n");
 	return true;
 }
