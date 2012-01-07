@@ -353,16 +353,14 @@ findTrailer(FILE *file, EncData *e) {
   while(ch != EOF) {
     if(isEndOfLine(ch)) {
       if(isWord(file, "trailer")) {
-	/**	printf("found trailer\n");*/
+	printf("found trailer\n");
 	ch = parseWhiteSpace(file);
 	if(ch == '<' && getc(file) == '<') {
 	  /** we can be pretty sure to have found the trailer.
 	      start looking for the Encrypt-entry */
 
-	  /**
 	  pos_i = ftell(file);
 	  printf("found Trailer at pos %x\n", pos_i);
-	  */
 	  ch = getc(file);
 	  while(ch != EOF) {
 	    if(ch == '>') {
@@ -374,15 +372,13 @@ findTrailer(FILE *file, EncData *e) {
 	      ch = getc(file);
 	    }
 	    ch = getc(file);
-	    /**printf("found a name: %c\n", ch);*/
+	    printf("found a name: %c\n", ch);
 	    if(e_pos < 0 && ch == 'E' && isWord(file, "ncrypt")) {
 	      e_pos = parseIntWithC(file,parseWhiteSpace(file));
 	      if(e_pos >= 0) {
-		/**
-		   pos_i = ftell(file);
-		   printf("found Encrypt at pos %x, ", pos_i);
-		   printf("%d\n", e_pos);
-		*/
+		pos_i = ftell(file);
+		printf("found Encrypt at pos %x, ", pos_i);
+		printf("%d\n", e_pos);
 		encrypt = true;
 	      }
 	    }
@@ -399,10 +395,8 @@ findTrailer(FILE *file, EncData *e) {
 	      }
 
 	      str = parseRegularString(file);
-	      /**
 	      pos_i = ftell(file);
 	      printf("found ID at pos %x\n", pos_i);
-	      */
 	      if(str)
 		id = true;
 	      ch = getc(file);
@@ -410,7 +404,7 @@ findTrailer(FILE *file, EncData *e) {
 	    else
 	      ch = getc(file);
 	    if(encrypt && id) {
-	      /**printf("found all, returning: epos: %d\n",e_pos);*/
+	      printf("found all, returning: epos: %d\n",e_pos);
 	      e->fileID = str->content;
 	      e->fileIDLen = str->len;
 	      free(str);
@@ -426,7 +420,7 @@ findTrailer(FILE *file, EncData *e) {
     else
       ch = getc(file);
   }
-  /**  printf("finished searching\n");*/
+  printf("finished searching\n");
 
   if(str) {
     if(str->content)
